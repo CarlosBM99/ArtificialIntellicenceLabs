@@ -32,6 +32,7 @@ The parts you fill in start about 3/4 of the way down.  Follow the project
 description for details.
 
 Good luck and happy searching!
+This is a test
 """
 
 from game import Directions
