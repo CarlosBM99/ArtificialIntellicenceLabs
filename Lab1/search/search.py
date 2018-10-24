@@ -72,23 +72,30 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def solver(problem, route):
+def nullHeuristic(state, problem=None):
+    """
+    A heuristic function estimates the cost from the current state to the nearest
+    goal in the provided SearchProblem.  This heuristic is trivial.
+    """
+    return 0
+
+def solver(problem, route, heuristic=nullHeuristic):
     #We check which nodes we have visited to avoid loops
     visited = []
-    route.push( (problem.getStartState(), []) )
+    route.push( (problem.getStartState(), [], heuristic(problem.getStartState(), problem)))
     visited.append( problem.getStartState() )
 
     #This while will be running until we don't find the GOAL, the only 
     #place where we do not make a push
     while route.isEmpty() == 0:
-        state, actions = route.pop()
+        state, actions, weight = route.pop()
 
         for currentState in problem.getSuccessors(state):
             #Position (x,y)
             position = currentState[0]
             #Direction (Nort|South|East|West)
             direction = currentState[1]
-            #Cost (NOT used in this case)
+            #Cost (Integer)
             cost = currentState[2]
             #Make sure that we are not in a visited node (avoid loops)
             if position not in visited:
@@ -98,7 +105,7 @@ def solver(problem, route):
                 else:
                     #We input the state and the actions that we are 
                     #using in the next iteration
-                    route.push( (position, actions + [direction]) )
+                    route.push( (position, actions + [direction], weight + cost) )
                     #We mark the position as visited
                     visited.append( position )
 
@@ -144,23 +151,18 @@ def uniformCostSearch(problem):
     "*** YOUR CODE HERE ***"
     #UCS uses a priority queue bc we are taking into account which node has
     #reached less distance. When we arrive to the Goal we check if any other
-    #node can arrive easily
-    route = util.PriorityQueueWithFunction(lambda newChange: newChange[-1])
+    #node can arrive easily.
+    route = util.PriorityQueueWithFunction(lambda n: n[-1])
     return solver(problem,route)
 
     util.raiseNotDefined()
 
-def nullHeuristic(state, problem=None):
-    """
-    A heuristic function estimates the cost from the current state to the nearest
-    goal in the provided SearchProblem.  This heuristic is trivial.
-    """
-    return 0
-
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    
+    route = util.PriorityQueueWithFunction(lambda n: n[-1] + heuristic(n[0],problem))
+    return solver(problem,route)
+
     util.raiseNotDefined()
 
 
