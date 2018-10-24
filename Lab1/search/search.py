@@ -72,6 +72,7 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first.
@@ -87,7 +88,42 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # command: 
+    #   python pacman.py -l tinyMaze -p SearchAgent --frameTime 0
+    #   python pacman.py -l mediumMaze -p SearchAgent --frameTime 0
+    #   python pacman.py -l bigMaze -z .5 -p SearchAgent --frameTime 0
+  
+    #DFS uses stack bc when visit a node we add it in front, so, when we
+    #are evaluating, we do first this new discovered node
+    Frontier = util.Stack()
+    #We check which nodes we have visited to avoid loops
+    Visited = []
+    Frontier.push( (problem.getStartState(), []) )
+    Visited.append( problem.getStartState() )
+
+    #This while will be running until we don't find the GOAL, the only 
+    #place where we do not make a push
+    while Frontier.isEmpty() == 0:
+        state, actions = Frontier.pop()
+
+        for next in problem.getSuccessors(state):
+            #Position (x,y)
+            n_state = next[0]
+            #Direction (Nort|South|East|West)
+            n_direction = next[1]
+            #Make sure that we are not in a Visited node (avoid loops)
+            if n_state not in Visited:
+                if problem.isGoalState(n_state):
+                    #GOAL
+                    return actions + [n_direction]
+                else:
+                    #We input the state and the actions that we are 
+                    #using in the next iteration
+                    Frontier.push( (n_state, actions + [n_direction]) )
+                    #We mark the position as Visited
+                    Visited.append( n_state )
+
+    util.raiseNotDefined()  
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
