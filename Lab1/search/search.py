@@ -80,28 +80,33 @@ def nullHeuristic(state, problem=None):
     return 0
 
 def solver(problem, route):
-    
-    Visited = []
-    route.push( (problem.getStartState(), [], 0) )
-    state, actions, weight = route.pop()
-    Visited.append(state)
 
-    #Case when the Starting is the Goal
-    if problem.isGoalState(state):
-        return actions
+    # Inite first values that we will modify
+    visited = []
+    route.push((problem.getStartState(), [], 0))
 
-    #Do not stop until we reach the GOAL
-    while not problem.isGoalState(state):
-        #We iterate over all the succesors
-        for successors in problem.getSuccessors(state):
-            #We check that the position is not visited orif it is the goal state
-            if (successors[0] not in Visited) or problem.isGoalState(successors[0]):
-                route.push( (successors[0], actions + [successors[1]], weight + successors[2]) )
-                Visited.append(successors[0])
-        #Check the next successor        
-        (state, actions, weight) = route.pop()
+    # It will only be empty when it visits all the nodes
+    while not route.isEmpty():
+        # First, we take the information doing the pop
+        state, actions, weight = route.pop()
+        
+        # If the state is visited then continue with the next iteration
+        if state in visited:
+            continue
 
-    return actions
+        # Add the current state to the visited list
+        visited.append(state)
+        
+        # If the current state is the goal state, all right -> return the path
+        if problem.isGoalState(state):
+            return actions
+        
+        # Get all succesors and take its information
+        for successor, action, stepCost in problem.getSuccessors(state):
+            # Check all the successors that are not visited
+            if successor not in visited:
+                # Then add to the route the current information
+                route.push((successor, actions + [action], stepCost + weight))
 
 def depthFirstSearch(problem):
     """
@@ -128,8 +133,6 @@ def depthFirstSearch(problem):
     route = util.Stack()
     return solver(problem, route)
 
-    util.raiseNotDefined()  
-
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
@@ -137,8 +140,6 @@ def breadthFirstSearch(problem):
     #are evaluating, we do first the nodes that we had before adding
     route = util.Queue()
     return solver(problem,route)
-
-    util.raiseNotDefined()
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
@@ -149,15 +150,11 @@ def uniformCostSearch(problem):
     route = util.PriorityQueueWithFunction(lambda n: n[-1])
     return solver(problem,route)
 
-    util.raiseNotDefined()
-
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
     route = util.PriorityQueueWithFunction(lambda n: n[-1] + heuristic(n[0],problem))
     return solver(problem,route)
-
-    util.raiseNotDefined()
 
 
 # Abbreviations
