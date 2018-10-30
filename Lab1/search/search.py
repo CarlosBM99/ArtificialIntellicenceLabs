@@ -79,35 +79,29 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
-def solver(problem, route, heuristic=nullHeuristic):
-    #We check which nodes we have visited to avoid loops
-    visited = []
-    route.push( (problem.getStartState(), [], heuristic(problem.getStartState(), problem)))
-    visited.append( problem.getStartState() )
+def solver(problem, route):
+    
+    Visited = []
+    route.push( (problem.getStartState(), [], 0) )
+    state, actions, weight = route.pop()
+    Visited.append(state)
 
-    #This while will be running until we don't find the GOAL, the only 
-    #place where we do not make a push
-    while route.isEmpty() == 0:
-        state, actions, weight = route.pop()
+    #Case when the Starting is the Goal
+    if problem.isGoalState(state):
+        return actions
 
-        for currentState in problem.getSuccessors(state):
-            #Position (x,y)
-            position = currentState[0]
-            #Direction (Nort|South|East|West)
-            direction = currentState[1]
-            #Cost (Integer)
-            cost = currentState[2]
-            #Make sure that we are not in a visited node (avoid loops)
-            if position not in visited:
-                if problem.isGoalState(position):
-                    #GOAL
-                    return actions + [direction]
-                else:
-                    #We input the state and the actions that we are 
-                    #using in the next iteration
-                    route.push( (position, actions + [direction], weight + cost) )
-                    #We mark the position as visited
-                    visited.append( position )
+    #Do not stop until we reach the GOAL
+    while not problem.isGoalState(state):
+        #We iterate over all the succesors
+        for successors in problem.getSuccessors(state):
+            #We check that the position is not visited orif it is the goal state
+            if (successors[0] not in Visited) or problem.isGoalState(successors[0]):
+                route.push( (successors[0], actions + [successors[1]], weight + successors[2]) )
+                Visited.append(successors[0])
+        #Check the next successor        
+        (state, actions, weight) = route.pop()
+
+    return actions
 
 def depthFirstSearch(problem):
     """
