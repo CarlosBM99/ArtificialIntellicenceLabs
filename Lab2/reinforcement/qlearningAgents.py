@@ -63,12 +63,15 @@ class QLearningAgent(ReinforcementAgent):
           terminal state, you should return a value of 0.0.
         """
         "*** YOUR CODE HERE ***"
+        #Initially set to -inf
         QVal = -float('inf')
         if self.getLegalActions(state):
+            #If the movement is legal the QVal is the max in all legal actions
             for currentAction in self.getLegalActions(state):
                 QVal = max(QVal, self.getQValue(state, currentAction))
             return QVal
         else:
+            #If not legal return 0.0 as told
             return 0.0
 
     def computeActionFromQValues(self, state):
@@ -78,9 +81,11 @@ class QLearningAgent(ReinforcementAgent):
           you should return None.
         """
         "*** YOUR CODE HERE ***"
+        #Initially set to -inf
         bestQVal = -float('inf')
         action = None
         if self.getLegalActions(state):
+            #If the movement is legal return the action with the maximum QValue
             for currentAction in self.getLegalActions(state):
                 QVal = self.getQValue(state, currentAction)
                 if QVal > bestQVal:
@@ -88,6 +93,7 @@ class QLearningAgent(ReinforcementAgent):
                     bestQVal = QVal
             return action
         else:
+            #If the movement is not legal return the initial value of action None
             return action
 
     def getAction(self, state):
@@ -106,12 +112,15 @@ class QLearningAgent(ReinforcementAgent):
         action = None
         "*** YOUR CODE HERE ***"
         if legalActions:
+            #If the action is legal, then move. But be carefull there is a noise (epsilon) so maybe you
+            #move to another (random, but legal) position instead of the expected one!
             if util.flipCoin(self.epsilon):
                 return random.choice(legalActions)
             else: 
                 return self.computeActionFromQValues(state)
         else:
-            return None
+            #If the action is not legal return the initial action None
+            return action
 
     def update(self, state, action, nextState, reward):
         """
@@ -127,9 +136,9 @@ class QLearningAgent(ReinforcementAgent):
         discount = self.discount
         nextVal = self.getValue(nextState)
         QVal = self.getQValue(state, action)
-
-        aprox = reward + nextVal * discount
-        self.values[ (state, action) ] = (1-alpha) * QVal+alpha * aprox
+        #Bellman ecuation
+        val = reward + nextVal * discount
+        self.values[ (state, action) ] = (1-alpha) * QVal+alpha * val
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)

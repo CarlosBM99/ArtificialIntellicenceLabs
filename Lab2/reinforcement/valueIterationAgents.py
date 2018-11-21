@@ -54,8 +54,12 @@ class ValueIterationAgent(ValueEstimationAgent):
                 actions = mdp.getPossibleActions(state)
                 #While this state is not the last we look for the best action value
                 if not mdp.isTerminal(state):
-                    #Set Qvalue from the current state
-                    self.oldValues[state] = self.getQValue(state, self.getAction(state))
+                    action_value = -999999
+                    for action in actions:
+                        q_value = self.computeQValueFromValues(state, action)
+                        action_value = max(action_value, q_value)
+                    #Set his own state as the best action value found
+                    self.values[state] = action_value
             self.oldValues = self.values.copy()
 
 
