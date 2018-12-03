@@ -128,46 +128,132 @@ class MultiAgentSearchAgent(Agent):
     """
 
     def __init__(self, evalFn = 'scoreEvaluationFunction', depth = '2'):
+
         self.index = 0 # Pacman is always agent index 0
         self.evaluationFunction = util.lookup(evalFn, globals())
         self.depth = int(depth)
+    
+    # Function in charge of decide who plays (it decides if we have to use min or max)
+    def dispatch(self, gameState, action, turn, alpha, beta):
+
+        # We get the current turn
+        turn = (turn + 1) % (gameState.getNumAgents() * self.depth)   
+        # First we check if the game is over or if it is the first turn
+        if gameState.isLose() or gameState.isWin() or (turn == 0):
+    		return self.evaluationFunction(gameState)
+        # Get who plays now
+        agentIndex = turn % gameState.getNumAgents()  
+        # If 0 -> is pacman
+        if agentIndex == 0:
+            return self.value(gameState, turn, alpha, beta, 'pacman')
+        # Otherwise -> ghost
+        else:
+            return self.value(gameState, turn, alpha, beta, 'ghost')
+
+    def generalGetAction(self, gameState):
+
+        # Init the valAction 
+        valAction = util.Counter()
+        # Init alpha as minus infinity
+        alpha = float("-inf")
+        # Init beta as plus infinity
+        beta = float("inf")
+        # Get all the possible (legal) actions that we can carry out in a pacman state
+        # and iterate for every action
+        for action in gameState.getLegalActions(self.index):
+            # Assign the successor given an action
+            successor = gameState.generateSuccessor(self.index, action)
+            valAction[action] = self.dispatch( successor, action, self.index, alpha, beta )
+            # Assign alpha as a max between the current value of alpha and the current val of that action
+            alpha = max(alpha, valAction[action])
+        # Return the key with the highest value
+        return valAction.argMax()
 
 class MinimaxAgent(MultiAgentSearchAgent):
-    """
-      Your minimax agent (question 2)
-    """
 
+    # Function that returns the value of pacman turn
+    def value(self, gameState, turn, alpha, beta, element):
+        
+        # Get the agent index depending of the turn
+        agentIndex = turn % gameState.getNumAgents()
+
+        if element == 'pacman':
+            # Init the maximum as minus infinity
+            maximum = -float('inf')
+            # Get all the possible (legal) actions that we can carry out at the position of the agent,
+            # and iterate for every action
+            for action in gameState.getLegalActions(agentIndex):
+                # Get a candidate -> val
+                val = self.dispatch( gameState.generateSuccessor(agentIndex, action), action, turn, 0, 0 )
+                # Check if it is a maximum
+                if val > maximum:
+                    # Assing the val as max
+                    maximum = val
+            return maximum
+        else: # else is a ghost
+            # Init the minimum as plus infinity
+            minimum = float('inf')
+            # Get all the possible (legal) actions that we can carry out at the position of the agent,
+            # and iterate for every action
+            for action in gameState.getLegalActions(agentIndex):
+                # Get a candidate -> val
+                val = self.dispatch( gameState.generateSuccessor(agentIndex, action), action, turn, 0, 0 )
+                # Check if it is a maximum
+                if val < minimum:
+                    # Assing the val as max
+                    minimum = val 
+            return minimum
+
+    # Function that returns de action of the actual GameState
     def getAction(self, gameState):
-        """
-          Returns the minimax action from the current gameState using self.depth
-          and self.evaluationFunction.
-
-          Here are some method calls that might be useful when implementing minimax.
-
-          gameState.getLegalActions(agentIndex):
-            Returns a list of legal actions for an agent
-            agentIndex=0 means Pacman, ghosts are >= 1
-
-          gameState.generateSuccessor(agentIndex, action):
-            Returns the successor game state after an agent takes an action
-
-          gameState.getNumAgents():
-            Returns the total number of agents in the game
-        """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.generalGetAction(gameState)
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
-    """
-      Your minimax agent with alpha-beta pruning (question 3)
-    """
 
+    def value(self, gameState, turn, alpha, beta, element):
+
+        # Get the agent index depending of the turn
+        agentIndex = turn % gameState.getNumAgents()
+        
+        if element == 'pacman':
+            # Init the val as minus infinity
+            val = -float("inf")
+            # Get all the possible (legal) actions that we can carry out at the position of the agent,
+            # and iterate for every action
+            for action in gameState.getLegalActions(agentIndex):
+                # Assign the successor given an action
+                successor = gameState.generateSuccessor(agentIndex, action)
+                # and the val as a max of the previous val and the new one
+                val = max(val, self.dispatch( successor, action, turn, alpha, beta ))
+                # If it is bigger than beta, we have to return the val, and end with this action
+                # It means that we do not continue with that branch (pruned)
+                if val > beta:
+                    return val
+                # Otherwise, alpha is the max between alpha and the value
+                alpha = max(alpha, val)
+            return val
+        else:
+            # Init the val as plus infinity
+            val = float("inf")
+            # Get all the possible (legal) actions that we can carry out at the position of the agent,
+            # and iterate for every action
+            for action in gameState.getLegalActions(agentIndex):
+                # Assign the successor given an action
+                successor = gameState.generateSuccessor(agentIndex, action)
+                # and the val as a min of the previous val and the new one
+                val = min(val, self.dispatch( successor, action, turn, alpha, beta ))
+                # If it is smaller than alpha, we have to return the val, and end with this action
+                # It means that we do not continue with that branch (pruned)
+                if val < alpha:
+                    return val
+                # Otherwise, beta is the max between beta and the value
+                beta = min(beta, val)
+            return val
+
+    # Function that returns de action of the actual GameState
     def getAction(self, gameState):
-        """
-          Returns the minimax action using self.depth and self.evaluationFunction
-        """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.generalGetAction(gameState)
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
